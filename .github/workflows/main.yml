@@ -34,4 +34,4 @@ jobs:
 
           git add sitemap-docs.xml
           git commit -m "Mise à jour automatique du sitemap" || echo "Pas de modification"
-          git push origin gh-pages
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MohamedOpenpaye/sitemap2.git gh-pages
