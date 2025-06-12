@@ -32,7 +32,6 @@ jobs:
           git fetch origin
           git switch gh-pages
 
-          cp sitemap-docs.xml ./sitemap-docs.xml
           git add sitemap-docs.xml
           git commit -m "Mise à jour automatique du sitemap" || echo "Pas de modification"
           git push origin gh-pages
