@@ -1,0 +1,38 @@
+name: Génération du sitemap et déploiement
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'  # Tous les lundis à 5h UTC
+  workflow_dispatch:     # Lancement manuel possible
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v3
+
+      - name: Installer Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Installer les dépendances
+        run: |
+          pip install -r requirements.txt
+
+      - name: Générer le sitemap
+        run: python sitemap2.py
+
+      - name: Déployer sur la branche gh-pages
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git fetch origin
+          git switch gh-pages
+
+          cp sitemap-docs.xml ./sitemap-docs.xml
+          git add sitemap-docs.xml
+          git commit -m "Mise à jour automatique du sitemap" || echo "Pas de modification"
+          git push origin gh-pages
