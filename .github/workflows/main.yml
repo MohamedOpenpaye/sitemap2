@@ -32,6 +32,9 @@ jobs:
           git fetch origin
           git switch gh-pages
 
+          # 🔑 Ajout de l'URL privée avec token
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MohamedOpenpaye/sitemap2.git
+
           git add sitemap-docs.xml
           git commit -m "Mise à jour automatique du sitemap" || echo "Pas de modification"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MohamedOpenpaye/sitemap2.git gh-pages
+          git push origin gh-pages
