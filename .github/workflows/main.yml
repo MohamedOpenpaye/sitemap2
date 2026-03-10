@@ -32,38 +32,28 @@ jobs:
           fi
           ls -l sitemap-docs.xml
 
-- name: Publier dans gh-pages via token
-  env:
-    GH_TOKEN: ${{ secrets.GH_TOKEN }}
-  run: |
-    mkdir temp-clone
-    cd temp-clone
+      - name: Publier dans gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          mkdir temp-clone
+          cd temp-clone
 
-    git clone https://x-access-token:${GH_TOKEN}@github.com/MohamedOpenpaye/sitemap2.git .
+          git clone https://x-access-token:${GH_TOKEN}@github.com/MohamedOpenpaye/sitemap2.git .
 
-    git config --global user.name "github-actions[bot]"
-    git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-    if git ls-remote --exit-code --heads origin gh-pages; then
-      git checkout -B gh-pages origin/gh-pages
-    else
-      git checkout --orphan gh-pages
-      find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-      echo "<h1>Sitemap en ligne</h1>" > index.html
-      git add index.html
-      git commit -m "Initialiser gh-pages"
-      git push origin gh-pages
-    fi
-
-    cp ../sitemap-docs.xml ./sitemap-docs.xml
-    git add sitemap-docs.xml
-
-    if git diff --cached --quiet; then
-      echo "Aucune modification à publier"
-    else
-      git commit -m "MAJ automatique du sitemap"
-      git push origin gh-pages
-    fi
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            git checkout -B gh-pages origin/gh-pages
+          else
+            git checkout --orphan gh-pages
+            find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            echo '<h1>Sitemap en ligne</h1><p><a href="./sitemap-docs.xml">Ouvrir le sitemap XML</a></p>' > index.html
+            git add index.html
+            git commit -m "Initialiser gh-pages"
+            git push origin gh-pages
+          fi
 
           cp ../sitemap-docs.xml ./sitemap-docs.xml
           git add sitemap-docs.xml
