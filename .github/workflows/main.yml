@@ -2,18 +2,19 @@ name: Génération du sitemap et déploiement
 
 on:
   schedule:
-    - cron: '0 5 * * 1'  # Tous les lundis à 5h UTC
-  workflow_dispatch:     # Lancement manuel possible
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Cloner le dépôt
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Installer Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -23,17 +24,43 @@ jobs:
       - name: Générer le sitemap
         run: python sitemap2.py
 
-      - name: Publier dans gh-pages via token (sans origin)
+      - name: Vérifier que le sitemap a été généré
+        run: |
+          if [ ! -f sitemap-docs.xml ]; then
+            echo "Erreur : sitemap-docs.xml est introuvable"
+            exit 1
+          fi
+          ls -l sitemap-docs.xml
+
+      - name: Publier dans gh-pages via token
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           mkdir temp-clone
           cd temp-clone
 
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
 
-          git clone --single-branch --branch gh-pages https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/MohamedOpenpaye/sitemap2.git .
+          git clone https://x-access-token:${GH_TOKEN}@github.com/MohamedOpenpaye/sitemap2.git .
+
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            rm -rf ./*
+            echo "<h1>Sitemap en ligne</h1>" > index.html
+            git add index.html
+            git commit -m "Initialiser gh-pages"
+            git push origin gh-pages
+          fi
 
           cp ../sitemap-docs.xml ./sitemap-docs.xml
           git add sitemap-docs.xml
-          git commit -m "MAJ automatique du sitemap" || echo "Aucune modif"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "Aucune modification à publier"
+          else
+            git commit -m "MAJ automatique du sitemap"
+            git push origin gh-pages
+          fi
